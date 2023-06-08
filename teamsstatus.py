@@ -6,7 +6,7 @@ from selenium.webdriver.firefox.options import Options
 from time import sleep
 from serialcoms import TeamsSerial
 
-ser = TeamsSerial("", 115200)
+ser = TeamsSerial("/dev/ttyACM0", 115200)
 
 # Microsoft Teams login credentials
 username = ""
@@ -43,24 +43,30 @@ password_input.send_keys(password)
 password_input.send_keys(Keys.RETURN)
 
 # Wait for the login process to complete
-sleep(30)
+sleep(35)
 
 
 # Wait for the calendar page to load
 xpath = "//div[@class='user-information-button']//span[@class='ts-skype-status visible']//span[@aria-hidden='true']//span[@class]"
 while True:
-    element =  driver.find_element(By.XPATH,xpath)     
-    status = element.get_attribute("class")
+    try:
+        element =  driver.find_element(By.XPATH,xpath)     
+        status = element.get_attribute("class")
     
-    status = (list(status.split(" ")))[-1]
+        status = (list(status.split(" ")))[-1]
+    except:
+        status = "unknown"
 
     print(status)
 
+    while status =="unknown":
+        sleep(1)
+        element = driver.find_element(By.XPATH,xpath)
+        status = element.get_attribute("class")
+        status = (list(status.split(" ")))[-1]
+        print("In unknown loop")
     ser.senddata(status+"\r\n")
-
-    
-    
-    
-    sleep(2)
+    driver.refresh()
+    sleep(15)
 
 driver.quit()
